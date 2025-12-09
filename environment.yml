@@ -5,4 +5,10 @@ channels:
 dependencies:
   - xeus-python
   - ipycanvas
+  - snoop
   - friendly-traceback
+  - numpy
+  - matplotlib
+  - pip:
+      - ipywidgets
+
