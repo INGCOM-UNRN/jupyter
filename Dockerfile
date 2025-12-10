@@ -1,5 +1,6 @@
 # Dockerfile para construir y servir JupyterLite
 # Etapa 1: Construcción de JupyterLite
+# Nota: micromamba 1.5.8 es compatible con jupyterlite-xeus 4.3
 FROM mambaorg/micromamba:1.5.8 AS builder
 
 USER root
@@ -12,7 +13,9 @@ COPY --chown=$MAMBA_USER:$MAMBA_USER .github/build-environment.yml /tmp/build-en
 COPY --chown=$MAMBA_USER:$MAMBA_USER environment.yml /tmp/environment.yml
 
 # Instalar dependencias de construcción
-# Nota: en entornos con problemas SSL, usar: micromamba config set ssl_verify false antes de install
+# IMPORTANTE: Solo desactiv SSL verification en entornos de desarrollo controlados
+# Nota: en entornos con problemas SSL corporativos, agregar antes de install:
+# RUN micromamba config set ssl_verify false
 RUN micromamba install -y -n base -f /tmp/build-environment.yml && \
     micromamba clean --all --yes
 
