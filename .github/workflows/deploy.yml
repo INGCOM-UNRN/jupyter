@@ -32,6 +32,36 @@ jobs:
         run: |
           cp README.md content
           jupyter lite build --contents content --output-dir dist
+          
+      - name: Integrate Callisto Monitor
+        shell: bash -l {0}
+        run: |
+          # Copiar script de monitoreo al dist
+          if [ -f content/callisto-monitor.js ]; then
+            cp content/callisto-monitor.js dist/
+            echo "✅ callisto-monitor.js copiado"
+            
+            # Copiar configuración si existe
+            if [ -f content/callisto-config.js ]; then
+              cp content/callisto-config.js dist/
+              echo "✅ callisto-config.js copiado"
+            fi
+            
+            # Inyectar script en todos los HTML principales de JupyterLite
+            for html_file in dist/index.html dist/lab/index.html dist/repl/index.html; do
+              if [ -f "$html_file" ]; then
+                # Buscar la etiqueta </body> e inyectar antes
+                sed -i 's|</body>|  <script src="../callisto-monitor.js"></script>\n  <script>\n    if (window.CALLISTO_CONFIG) {\n      CallistoMonitor.init(window.CALLISTO_CONFIG);\n    }\n  </script>\n</body>|' "$html_file" 2>/dev/null || \
+                sed -i 's|</body>|  <script src="callisto-monitor.js"></script>\n  <script>\n    if (window.CALLISTO_CONFIG) {\n      CallistoMonitor.init(window.CALLISTO_CONFIG);\n    }\n  </script>\n</body>|' "$html_file" 2>/dev/null || true
+                
+                if [ $? -eq 0 ]; then
+                  echo "✅ Script inyectado en $html_file"
+                fi
+              fi
+            done
+          else
+            echo "⚠️  callisto-monitor.js no encontrado, saltando integración"
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
