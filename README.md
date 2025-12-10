@@ -81,3 +81,114 @@ dependencies:
 ## 📦 How to install other jupyterlite plugins
 
 If you want to install jupyterlite plugins, e.g. `jupyterlite-terminal`, add those plugins to the `.github/build-environment.yml` file.
+
+## 🐳 Docker Deployment
+
+This repository now includes Docker support for local development and deployment.
+
+📖 **[Ver guía completa de despliegue (DEPLOYMENT.md)](DEPLOYMENT.md)**
+
+### Prerequisites
+
+- Docker installed on your system
+- Docker Compose (optional, for simplified deployment)
+
+### Quick Start with Docker Compose
+
+The easiest way to run JupyterLite locally is using Docker Compose:
+
+```bash
+# Build and start the application
+docker-compose up --build
+
+# Or run in detached mode
+docker-compose up -d --build
+```
+
+The application will be available at: **http://localhost:8080**
+
+To stop the application:
+
+```bash
+docker-compose down
+```
+
+### Automated Verification
+
+Use the provided verification script to test the deployment:
+
+```bash
+./verify-deployment.sh
+```
+
+This script will:
+- Check Docker installation
+- Build the Docker image
+- Start the container
+- Verify the service is responding
+- Display access URLs
+
+### Manual Docker Build and Run
+
+If you prefer to use Docker directly without Docker Compose:
+
+```bash
+# Build the Docker image
+docker build -t jupyterlite-app:latest .
+
+# Run the container
+docker run -d -p 8080:8080 --name jupyterlite jupyterlite-app:latest
+
+# Check container logs
+docker logs jupyterlite
+
+# Stop the container
+docker stop jupyterlite
+docker rm jupyterlite
+```
+
+### Verifying the Deployment
+
+Once the container is running, you can verify it's working correctly:
+
+1. **Main Page**: Open http://localhost:8080 in your browser
+2. **JupyterLab Interface**: Navigate to http://localhost:8080/lab/
+3. **REPL**: Access the REPL at http://localhost:8080/repl/
+4. **Health Check**: The container includes an automatic health check that runs every 30 seconds
+
+### Docker Image Details
+
+- **Base Image**: Uses `mambaorg/micromamba` for building and `nginx:alpine` for serving
+- **Port**: Exposes port 8080
+- **Size**: Optimized multi-stage build for smaller image size
+- **Health Check**: Automatic health monitoring included
+- **Compression**: Gzip compression enabled for faster loading
+
+### CI/CD with Docker
+
+The repository includes a GitHub Actions workflow (`.github/workflows/docker-ci.yml`) that:
+
+- Builds the Docker image on every pull request
+- Runs automated tests to verify the image works correctly
+- Uses Docker layer caching for faster builds
+- Validates that the application responds correctly
+
+### Troubleshooting
+
+**Container fails to start:**
+```bash
+docker logs jupyterlite
+```
+
+**Port already in use:**
+```bash
+# Use a different port
+docker run -d -p 8081:8080 --name jupyterlite jupyterlite-app:latest
+```
+
+**Rebuild without cache:**
+```bash
+docker-compose build --no-cache
+# or
+docker build --no-cache -t jupyterlite-app:latest .
+```

@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+
+# Documentation (keep README.md as it's needed for build)
+deploy.gif
+.nojekyll
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Build artifacts
+build/
+dist/
+_output/
+*.egg-info/
+.eggs/
+*.doit.db
+
+# Development
+.ipynb_checkpoints
+.pytest_cache/
+.mypy_cache/
+.coverage
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore

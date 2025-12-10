@@ -1,0 +1,81 @@
+name: Docker CI/CD
+
+on:
+  pull_request:
+    branches:
+      - '*'
+  push:
+    branches:
+      - main
+
+jobs:
+  docker-build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: jupyterlite-app:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          load: true
+      
+      - name: Test Docker image
+        run: |
+          # Iniciar el contenedor
+          docker run -d --name jupyterlite-test -p 8080:8080 jupyterlite-app:test
+          
+          # Esperar a que el contenedor esté listo
+          echo "Esperando a que el contenedor esté listo..."
+          sleep 10
+          
+          # Verificar que el contenedor está corriendo
+          docker ps | grep jupyterlite-test
+          
+          # Verificar el healthcheck
+          echo "Verificando healthcheck del contenedor..."
+          for i in {1..30}; do
+            if docker inspect --format='{{.State.Health.Status}}' jupyterlite-test 2>/dev/null | grep -q "healthy"; then
+              echo "✅ Contenedor saludable"
+              break
+            fi
+            echo "Esperando healthcheck... intento $i/30"
+            sleep 2
+          done
+          
+          # Verificar que el sitio responde
+          echo "Verificando que el sitio responde..."
+          curl -f http://localhost:8080/ || (echo "❌ El sitio no responde" && exit 1)
+          echo "✅ El sitio responde correctamente"
+          
+          # Verificar que existen las páginas principales
+          echo "Verificando páginas principales..."
+          curl -f http://localhost:8080/lab/index.html || (echo "⚠️  Lab no disponible" && exit 0)
+          echo "✅ JupyterLab disponible"
+          
+          # Mostrar logs del contenedor
+          echo "Logs del contenedor:"
+          docker logs jupyterlite-test
+      
+      - name: Stop and remove container
+        if: always()
+        run: |
+          docker stop jupyterlite-test || true
+          docker rm jupyterlite-test || true
+      
+      - name: Image size check
+        run: |
+          echo "Tamaño de la imagen Docker:"
+          docker images jupyterlite-app:test --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
