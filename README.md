@@ -86,6 +86,8 @@ If you want to install jupyterlite plugins, e.g. `jupyterlite-terminal`, add tho
 
 This repository now includes Docker support for local development and deployment.
 
+📖 **[Ver guía completa de despliegue (DEPLOYMENT.md)](DEPLOYMENT.md)**
+
 ### Prerequisites
 
 - Docker installed on your system
@@ -110,6 +112,21 @@ To stop the application:
 ```bash
 docker-compose down
 ```
+
+### Automated Verification
+
+Use the provided verification script to test the deployment:
+
+```bash
+./verify-deployment.sh
+```
+
+This script will:
+- Check Docker installation
+- Build the Docker image
+- Start the container
+- Verify the service is responding
+- Display access URLs
 
 ### Manual Docker Build and Run
 
